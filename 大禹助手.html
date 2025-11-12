@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大禹AI助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #1a1a1a;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* 初始页面样式 */
+        .welcome-container {
+            width: 100%;
+            max-width: 720px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            padding: 50px 50px 40px;
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 24px;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            position: relative;
+            z-index: 1;
+        }
+
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 18px;
+            z-index: -1;
+            opacity: 0.6;
+            filter: blur(8px);
+        }
+
+        h1 {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e0e0e0, transparent);
+            margin: 30px 0;
+        }
+
+        .welcome-content h2 {
+            font-size: 26px;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .welcome-content p {
+            color: #666;
+            margin-bottom: 28px;
+            font-size: 17px;
+        }
+
+        .preset-question {
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 20px;
+            padding: 24px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: left;
+            position: relative;
+            padding-bottom: 60px;
+            overflow: hidden;
+        }
+
+        .preset-question::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .preset-question:hover {
+            border-color: #667eea;
+            background: #fafbff;
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .preset-question:hover::before {
+            transform: scaleX(1);
+        }
+
+        .question-text {
+            font-size: 15px;               /* 从 18px 调小到 15px */
+            color: #475569;                /* 保持更浅、更舒适的灰蓝色 */
+            margin-bottom: 10px;           /* 略微收窄底部间距，视觉更均衡 */
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .question-hint {
+            font-size: 14px;
+            color: #888;
+            font-weight: 400;
+            position: absolute;
+            left: 24px;
+            bottom: 28px;
+            transition: all 0.3s ease;
+        }
+
+        .send-indicator {
+            position: absolute;
+            right: 24px;
+            bottom: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .preset-question:hover .send-indicator {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .preset-question:hover .question-hint {
+            color: #667eea;
+        }
+
+        /* AI头像样式 */
+        .ai-avatar {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 25px;
+            position: relative;
+        }
+
+        .avatar-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-container::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.4;
+            filter: blur(15px);
+        }
+
+        .avatar-face {
+            width: 70%;
+            height: 70%;
+            background: white;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-eyes {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 25px;
+        }
+
+        .avatar-eye {
+            width: 16px;
+            height: 16px;
+            background: #4a5568;
+            border-radius: 50%;
+            position: relative;
+            animation: blink 4s infinite;
+        }
+
+        .avatar-eye::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        .avatar-mouth {
+            width: 30px;
+            height: 8px;
+            background: #4a5568;
+            border-radius: 4px;
+            margin: 15px auto 0;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .ai-avatar:hover .avatar-mouth {
+            height: 12px;
+            border-radius: 6px 6px 12px 12px;
+        }
+
+        .avatar-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.4));
+            animation: pulse 3s infinite alternate;
+        }
+
+        @keyframes blink {
+            0%, 45%, 55%, 100% {
+                height: 16px;
+            }
+            50% {
+                height: 2px;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        /* 聊天页面样式 */
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 85vh;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .chat-header {
+            padding: 20px 28px;
+            background: white;
+            border-bottom: 1px solid #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .chat-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .back-button {
+            background: #f8f9fa;
+            border: 1px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 10px 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .back-button:hover {
+            background: #f0f2f5;
+            border-color: #d0d0d0;
+            transform: translateX(-2px);
+        }
+
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .chat-title-text {
+            font-size: 18px;
+            color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            height: 36px;
+            font-weight: 600;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 28px;
+            background: #f8f9fa;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 28px;
+            animation: messageAppear 0.4s ease-out;
+        }
+
+        .user-message {
+            text-align: right;
+        }
+
+        .message-content {
+            display: inline-block;
+            max-width: 78%;
+            text-align: left;
+            position: relative;
+        }
+
+        .user-message .message-content {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.25);
+            border: none;
+            line-height: 1.6;
+            animation: messageSlide 0.4s ease-out;
+        }
+
+        .user-message .message-content::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            right: 10px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid #6366f1;
+            transform: rotate(45deg);
+        }
+
+        .ai-message .message-content {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            width: 100%;
+            border: 1px solid #e8e8e8;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .ai-message .message-content::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 10px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid white;
+            transform: rotate(-45deg);
+        }
+
+        .thinking-indicator {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 20px 24px;
+            margin-bottom: 28px;
+            animation: fadeIn 0.5s ease-out;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e8e8e8;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .thinking-indicator::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 10px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px transparent;
+            border-top: 10px solid white;
+            transform: rotate(-45deg);
+        }
+
+        .thinking-text {
+            color: #888;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #888;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        /* AI回复内容样式 - 行间距调整为1.25 */
+        .ai-content {
+            line-height: 1.25; /* 调整为1.25 */
+            font-size: 15px;
+            color: #374151;
+        }
+
+        .ai-content p {
+            margin-bottom: 14px;
+            opacity: 0;
+            animation: typeIn 0.8s ease-out forwards;
+            line-height: 1.25; /* 调整为1.25 */
+        }
+
+        .ai-content .analysis-section {
+            margin: 20px 0;
+        }
+
+        .ai-content .analysis-title {
+            font-weight: 600;
+            margin-bottom: 14px;
+            color: #1a1a1a;
+            font-size: 17px;
+            opacity: 0;
+            animation: typeIn 0.8s ease-out forwards;
+            letter-spacing: -0.3px;
+            line-height: 1.25; /* 调整为1.25 */
+        }
+
+        .ai-content .strategy-container {
+            margin: 16px 0;
+        }
+
+        .ai-content .strategy-item {
+            margin: 16px 0;
+            padding: 0;
+            opacity: 0;
+            animation: typeIn 0.8s ease-out forwards;
+        }
+
+        .ai-content .strategy-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+            font-size: 16px;
+            letter-spacing: -0.2px;
+            line-height: 1.25; /* 调整为1.25 */
+        }
+
+        .ai-content .strategy-desc {
+            color: #4b5563;
+            margin-bottom: 10px;
+            font-size: 15px;
+            line-height: 1.25; /* 调整为1.25 */
+        }
+
+        /* 专业示例框样式 */
+        .ai-content .example-box {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 10px;
+            margin-bottom: 18px; /* 增加底部间距，使示例与下一个标题分离得更远 */
+            border-left: 4px solid #6366f1;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .ai-content .example-text {
+            color: #4b5563;
+            line-height: 1.25; /* 调整为1.25 */
+            font-size: 15px;
+            margin: 0;
+            font-style: normal;
+        }
+
+        /* 逐句显示的内容 */
+        .sentence {
+            opacity: 0;
+            animation: typeIn 0.8s ease-out forwards;
+            margin-bottom: 14px;
+            line-height: 1.25; /* 调整为1.25 */
+        }
+
+        .strategy-content {
+            margin-top: 14px;
+            margin-bottom: 18px;
+        }
+
+        /* 打字机效果 */
+        .typewriter {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 3.5s steps(40, end);
+        }
+
+        /* 打字机效果文本容器 */
+        .typed-text {
+            overflow: hidden;
+            border-right: 2px solid #667eea;
+            white-space: nowrap;
+            margin: 0;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+
+        /* 提示信息样式 */
+        .completion-notice {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 18px 24px;
+            border-radius: 16px;
+            margin-top: 20px;
+            text-align: center;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            animation: fadeInUp 0.8s ease-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .completion-notice svg {
+            flex-shrink: 0;
+        }
+
+        .completion-text {
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes typeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes typing {
+            0%, 80%, 100% { 
+                transform: scale(0.8); 
+                opacity: 0.5; 
+            }
+            40% { 
+                transform: scale(1); 
+                opacity: 1; 
+            }
+        }
+
+        /* 打字机动画 */
+        @keyframes typewriter {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #667eea; }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* 滚动条样式 */
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        @media (max-width: 768px) {
+            .welcome-container, .chat-container {
+                height: 90vh;
+                padding: 40px 24px;
+            }
+            
+            .message-content {
+                max-width: 88%;
+            }
+            
+            .chat-header {
+                padding: 16px 20px;
+            }
+            
+            .messages-container {
+                padding: 20px;
+            }
+            
+            .welcome-container {
+                padding: 40px 24px 30px;
+            }
+            
+            .preset-question {
+                padding-bottom: 60px;
+            }
+            
+            .ai-avatar {
+                width: 100px;
+                height: 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 初始页面 -->
+    <div class="welcome-container" id="welcomePage">
+        <!-- 添加AI头像 -->
+        <div class="ai-avatar">
+            <div class="avatar-container">
+                <div class="avatar-glow"></div>
+                <div class="avatar-face">
+                    <div class="avatar-eyes">
+                        <div class="avatar-eye"></div>
+                        <div class="avatar-eye"></div>
+                    </div>
+                    <div class="avatar-mouth"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="logo">
+            <div class="logo-icon">禹</div>
+            <h1>大禹AI助手</h1>
+        </div>
+        <div class="subtitle">专业的销售策略分析与建议</div>
+        
+        <div class="divider"></div>
+        
+        <div class="welcome-content">
+            <h2>您好！我是大禹AI助手</h2>
+            <p>我可以帮您分析客户情况并提供专业的销售策略建议</p>
+            
+            <div class="preset-question" id="presetQuestion">
+                <div class="question-text">我正在向王经理介绍CRM系统，他目前使用Excel管理客户，担心更换系统太麻烦，我应该如何应对？</div>
+                <div class="question-hint">点击发送此问题开始分析</div>
+                <div class="send-indicator">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22,2 15,22 11,13 2,9"></polygon>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 聊天页面 -->
+    <div class="chat-container hidden" id="chatPage">
+        <div class="chat-header">
+            <div class="chat-title" style="margin-left: 6px;">
+                <div class="logo-icon" style="width: 36px; height: 36px; font-size: 16px;">禹</div>
+                <div class="chat-title-text" style="margin-left: 12px;">大禹AI助手</div>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <!-- 消息将通过JavaScript动态添加 -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const welcomePage = document.getElementById('welcomePage');
+            const chatPage = document.getElementById('chatPage');
+            const presetQuestion = document.getElementById('presetQuestion');
+            const messagesContainer = document.getElementById('messagesContainer');
+            
+            // 切换到聊天页面
+            function goToChatPage() {
+                welcomePage.classList.add('hidden');
+                chatPage.classList.remove('hidden');
+                
+                // 添加用户消息
+                addMessage('user', '我正在向王经理介绍CRM系统，他目前使用Excel管理客户，担心更换系统太麻烦，我应该如何应对？');
+                
+                // 显示思考过程
+                const thinkingElement = showThinkingProcess();
+                
+                // 模拟AI思考后回复
+                setTimeout(() => {
+                    // 移除思考过程
+                    if (thinkingElement && thinkingElement.parentNode) {
+                        thinkingElement.parentNode.removeChild(thinkingElement);
+                    }
+                    
+                    // 添加AI回复
+                    addAIResponse();
+                }, 1500);
+            }
+            
+            // 返回初始页面
+            function goToWelcomePage() {
+                chatPage.classList.add('hidden');
+                welcomePage.classList.remove('hidden');
+                // 清空消息容器
+                messagesContainer.innerHTML = '';
+            }
+            
+            // 预设问题点击事件
+            presetQuestion.addEventListener('click', goToChatPage);
+            
+            // 添加消息到消息容器
+            function addMessage(sender, text) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}-message`;
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                
+                const textDiv = document.createElement('div');
+                textDiv.className = 'message-text';
+                textDiv.textContent = text;
+                
+                contentDiv.appendChild(textDiv);
+                messageDiv.appendChild(contentDiv);
+                
+                messagesContainer.appendChild(messageDiv);
+                
+                // 滚动到底部
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+            // 显示思考过程
+            function showThinkingProcess() {
+                const thinkingDiv = document.createElement('div');
+                thinkingDiv.className = 'thinking-indicator';
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'thinking-content';
+                
+                const textDiv = document.createElement('div');
+                textDiv.className = 'thinking-text';
+                textDiv.textContent = '正在分析客户情况';
+                
+                const dotsDiv = document.createElement('div');
+                dotsDiv.className = 'typing-dots';
+                dotsDiv.innerHTML = `
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                `;
+                
+                contentDiv.appendChild(textDiv);
+                contentDiv.appendChild(dotsDiv);
+                
+                thinkingDiv.appendChild(contentDiv);
+                
+                messagesContainer.appendChild(thinkingDiv);
+                
+                // 滚动到底部
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                return thinkingDiv;
+            }
+            
+            // 添加完成提示
+            function addCompletionNotice() {
+                const noticeDiv = document.createElement('div');
+                noticeDiv.className = 'completion-notice';
+                
+                const noticeContent = document.createElement('div');
+                noticeContent.className = 'completion-text';
+                noticeContent.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <div>
+                            <strong>分析完成！</strong> 请仔细阅读AI的建议，并自行决定是否使用 AI 的建议，然后关闭此界面继续问卷调查任务。
+                        </div>
+                    </div>
+                `;
+                
+                noticeDiv.appendChild(noticeContent);
+                messagesContainer.appendChild(noticeDiv);
+                
+                // 滚动到底部
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+            // 打字机效果函数 - 优化速度和流畅度
+            function typeWriter(element, text, speed = 15, callback) {
+                let i = 0;
+                element.innerHTML = '';
+                
+                function type() {
+                    if (i < text.length) {
+                        element.innerHTML += text.charAt(i);
+                        i++;
+                        setTimeout(type, speed);
+                    } else if (callback) {
+                        setTimeout(callback, 100);
+                    }
+                }
+                
+                type();
+            }
+            
+            // 添加AI回复
+            function addAIResponse() {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message ai-message';
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                
+                // 创建AI内容容器
+                const aiContent = document.createElement('div');
+                aiContent.className = 'ai-content';
+                
+                contentDiv.appendChild(aiContent);
+                messageDiv.appendChild(contentDiv);
+                messagesContainer.appendChild(messageDiv);
+                
+                // 滚动到底部
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                
+                // 分部分显示详细内容
+                setTimeout(() => addInitialText(aiContent), 200);
+            }
+            
+            function addInitialText(parent) {
+                const p = document.createElement('p');
+                p.className = 'sentence';
+                parent.appendChild(p);
+                
+                // 使用打字机效果
+                typeWriter(p, '根据您的描述，我已分析王经理的情况：', 15, () => {
+                    setTimeout(() => addAnalysisSection(parent), 200);
+                });
+                
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+            function addAnalysisSection(parent) {
+                const section = document.createElement('div');
+                section.className = 'analysis-section';
+                parent.appendChild(section);
+                
+                const title = document.createElement('div');
+                title.className = 'analysis-title';
+                section.appendChild(title);
+                
+                // 使用打字机效果显示标题
+                typeWriter(title, '客户分析结果', 15, () => {
+                    const content = [
+                        '客户类型：犹豫型客户',
+                        '当前状态：使用Excel管理客户，担心更换系统麻烦',
+                        '主要顾虑：实施成本、学习曲线、数据迁移'
+                    ];
+                    
+                    let index = 0;
+                    
+                    function addNextLine() {
+                        if (index < content.length) {
+                            const p = document.createElement('p');
+                            p.className = 'sentence';
+                            section.appendChild(p);
+                            
+                            typeWriter(p, content[index], 15, () => {
+                                index++;
+                                setTimeout(addNextLine, 150);
+                            });
+                            
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        } else {
+                            setTimeout(() => addStrategyItems(parent), 300);
+                        }
+                    }
+                    
+                    addNextLine();
+                });
+                
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+            
+            function addStrategyItems(parent) {
+                const strategies = [
+                    {
+                        title: "1. 建立信任与共情",
+                        sentences: [
+                            "认可Excel的实用性，但指出其局限性，分享成功案例",
+                            "示例话术：",
+                            "王经理，我理解您对更换系统的顾虑。很多企业最初都使用Excel，但随着客户增多，确实会遇到数据分散、难以协作的问题。"
+                        ]
+                    },
+                    {
+                        title: "2. 展示价值与易用性", 
+                        sentences: [
+                            "强调系统与Excel的相似性，演示一键导入功能",
+                            "示例话术：",
+                            "大禹CRM的界面设计很直观，您会发现很多操作逻辑和Excel相似。我们可以帮您把现有Excel数据一键导入，不会丢失任何信息。"
+                        ]
+                    },
+                    {
+                        title: "3. 提供保障与支持",
+                        sentences: [
+                            "强调全程实施支持，提供免费培训",
+                            "示例话术：",
+                            "我们有专业的实施团队全程支持，包括数据迁移、系统配置和团队培训。同类企业通常2周就能顺利过渡。"
+                        ]
+                    },
+                    {
+                        title: "4. 低风险尝试方案",
+                        sentences: [
+                            "提供30天免费试用，设置阶段性目标",
+                            "示例话术：",
+                            "我建议您先试用30天，我们帮您导入部分数据体验核心功能。试用结束后，您再根据实际效果决定是否继续使用。"
+                        ]
+                    }
+                ];
+                
+                // 添加策略标题
+                const strategyTitle = document.createElement('div');
+                strategyTitle.className = 'analysis-title';
+                parent.appendChild(strategyTitle);
+                
+                // 使用打字机效果显示策略标题
+                typeWriter(strategyTitle, '针对性销售策略', 15, () => {
+                    // 创建策略容器
+                    const strategyContainer = document.createElement('div');
+                    strategyContainer.className = 'strategy-container';
+                    parent.appendChild(strategyContainer);
+                    
+                    let strategyIndex = 0;
+                    
+                    function addNextStrategy() {
+                        if (strategyIndex < strategies.length) {
+                            const strategy = strategies[strategyIndex];
+                            
+                            // 策略标题
+                            const titleDiv = document.createElement('div');
+                            titleDiv.className = 'strategy-title';
+                            strategyContainer.appendChild(titleDiv);
+                            
+                            // 使用打字机效果显示策略标题
+                            typeWriter(titleDiv, strategy.title, 15, () => {
+                                // 创建策略内容容器
+                                const strategyContent = document.createElement('div');
+                                strategyContent.className = 'strategy-content';
+                                strategyContainer.appendChild(strategyContent);
+                                
+                                let sentenceIndex = 0;
+                                
+                                function addNextSentence() {
+                                    if (sentenceIndex < strategy.sentences.length) {
+                                        const sentence = strategy.sentences[sentenceIndex];
+                                        
+                                        if (sentenceIndex === strategy.sentences.length - 1) {
+                                            // 示例话术用特殊样式
+                                            const exampleBox = document.createElement('div');
+                                            exampleBox.className = 'example-box';
+                                            strategyContent.appendChild(exampleBox);
+                                            
+                                            const exampleText = document.createElement('div');
+                                            exampleText.className = 'example-text';
+                                            exampleBox.appendChild(exampleText);
+                                            
+                                            // 使用打字机效果显示示例话术
+                                            typeWriter(exampleText, sentence, 15, () => {
+                                                sentenceIndex++;
+                                                setTimeout(addNextSentence, 200);
+                                            });
+                                        } else {
+                                            const p = document.createElement('p');
+                                            p.className = 'strategy-desc';
+                                            strategyContent.appendChild(p);
+                                            
+                                            // 使用打字机效果显示策略描述
+                                            typeWriter(p, sentence, 15, () => {
+                                                sentenceIndex++;
+                                                setTimeout(addNextSentence, 150);
+                                            });
+                                        }
+                                        
+                                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                                    } else {
+                                        strategyIndex++;
+                                        setTimeout(addNextStrategy, 300);
+                                    }
+                                }
+                                
+                                addNextSentence();
+                            });
+                            
+                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        } else {
+                            // 所有策略显示完成后添加提示
+                            setTimeout(() => {
+                                addCompletionNotice();
+                            }, 500);
+                        }
+                    }
+                    
+                    addNextStrategy();
+                });
+                
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>
